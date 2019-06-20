@@ -53,6 +53,48 @@ class HashTbl
         delete[] m_data_table;
     }
 
+    /** Construtor de cópia
+     */
+    HashTbl(const HashTbl &other)
+    {
+        m_data_table = new std::forward_list<Entry>[other.m_size];
+        m_size = other.m_size;
+
+        auto inicio = other.m_data_table[end].begin(); //!< Inicio da lista
+        auto fim = other.m_data_table[end].end();      //!< Final da lista
+
+        for (auto i{0}; i < m_size; i++)
+        {
+            if (other.m_data_table[i].empty() == false)
+            {
+                for (auto it(inicio); it != fim; it++)
+                {
+                    Entry new_entry(it->m_key, it->m_data);
+                    m_data_table[i].push_front(new_entry);
+                }
+            }
+        }
+
+        m_count = other.m_count;
+    }
+
+    /** Operador de atribuição 
+     */
+    HashTbl &operator=(const HashTbl &other)
+    {
+        // Limpo a lista, caso tenha elementos
+        clear();
+        m_size = other.m_size;
+
+        auto inicio = other.m_data_table[end].begin(); //!< Inicio da lista
+        auto fim = other.m_data_table[end].end();      //!< Final da lista
+
+        for (auto i{inicio}; i < fim; i++)
+            m_data_table[i] = other.m_data_table[i];
+
+        return *this;
+    }
+
     /** Operador de atribuição 
      */
     HashTbl &operator=(std::initializer_list<Entry> ilist);

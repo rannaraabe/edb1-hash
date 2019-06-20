@@ -11,23 +11,12 @@ A implementação do projeto explora conceitos abordados da discplina de Estrutu
 
 ``` operator= ```: atribui um conteúdo; 
 
-## Iteradores
-``` iterator begin() ```: retorna um iterador apontando para o primeiro item da lista;
-
-``` iterator end() ```: retorna um iterador apontando para o ultimo item da lista;
-
-``` const_iterator cbegin() const ```: retorna um iterador apontando para o primeiro item da lista;
-
-``` const_iterator cend() const ```: retorna um iterador apontando para o ultimo item da lista;
-
 ## Capacidade
-``` size_type size() const ```: retorna o número de elementos do container;
+``` size_type size() const ```: retorna o número de elementos da lista;
 
-``` size_type capacity() const ```: retorna o número da capacidade do container;
+``` size_type capacity() const ```: retorna o número da capacidade da lista;
 
 ``` bool empty() ```: retorna se a lista está vazia ou não;
-
-``` void reserve( size_type new_cap ) ```:
 
 ## Acessando elementos
 ``` const T & operator[]( size_type pos) const ```: retorna o objeto que está no indice \pos no array, sem verificar os limites;
@@ -38,13 +27,6 @@ A implementação do projeto explora conceitos abordados da discplina de Estrutu
 
 ``` T & at ( size_type pos ) ```: retorna o objeto na posicao do indice do array, verificando os limites;
 
-``` const T & back() const ```: retorna o objeto do final da lista;
-
-``` T & back() ```: retorna o objeto do final da lista;
-
-``` const T & front() const ```: retorna o objeto do inicio da lista;
-
-``` T & front() ```: retorna o objeto do inicio da lista;
 
 ## Modificadores
 ``` void assign( sizet_type count, const T & value ) ```: substitui o conteudo da lista por copias de count de value;
@@ -52,14 +34,6 @@ A implementação do projeto explora conceitos abordados da discplina de Estrutu
 ``` void assign( InItr first, InItr last ) ```: substitui o conteudo do array com os elementos da lista ilist;
 
 ``` void assign( std::initializer_list<T> ilist ) ```: substitui o conteudo da lista por copias dos elementos no intervalo [first; last);
-
-``` void push_front( const T & value ) ```: adiciona value no inicio do cointainer;
-
-``` void push_back( const T & value ) ```: adiciona value no final do cointainer;
-
-``` void pop_back() ```: remove o elemento do inicio do cointainer;
-
-``` void pop_front() ```: remove o elemento do final do cointainer;
 
 ``` iterator insert( iterator pos, InItr first, InItr last ) ```: insere elementos do intervalo [first; last) antes de \pos;
 
