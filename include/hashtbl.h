@@ -60,8 +60,8 @@ class HashTbl
         m_data_table = new std::forward_list<Entry>[other.m_size];
         m_size = other.m_size;
 
-        auto inicio = other.m_data_table[end].begin(); //!< Inicio da lista
-        auto fim = other.m_data_table[end].end();      //!< Final da lista
+        auto inicio = other.m_data_table.begin(); //!< Inicio da lista
+        auto fim = other.m_data_table.end();      //!< Final da lista
 
         for (auto i{0}; i < m_size; i++)
         {
@@ -78,6 +78,10 @@ class HashTbl
         m_count = other.m_count;
     }
 
+    /** Construtor de lista inicializadora
+     */
+    HashTbl(std::initializer_list<Entry> ilist);
+
     /** Operador de atribuição 
      */
     HashTbl &operator=(const HashTbl &other)
@@ -86,8 +90,8 @@ class HashTbl
         clear();
         m_size = other.m_size;
 
-        auto inicio = other.m_data_table[end].begin(); //!< Inicio da lista
-        auto fim = other.m_data_table[end].end();      //!< Final da lista
+        auto inicio = other.m_data_table.begin(); //!< Inicio da lista
+        auto fim = other.m_data_table.end();      //!< Final da lista
 
         for (auto i{inicio}; i < fim; i++)
             m_data_table[i] = other.m_data_table[i];
@@ -151,7 +155,7 @@ class HashTbl
         for (auto it(inicio); it != fim; it++)
         {
             // Compara as chaves para o caso de colisão
-            if (equalFunctor(it->key, new_entry.key))
+            if (equalFunctor(it->key, key))
             {
                 // Remove o valor na lista
                 m_data_table[end].remove(m_data_table[end].m_key == key);
@@ -227,6 +231,26 @@ class HashTbl
         return this->m_count;
     }
 
+    /** É método de depuração para gerar uma representação textual da tabela e seus elementos.
+     */
+    friend std::ostream &operator<<(std::ostream &os, const HashTbl &hash)
+    {
+        for (auto i{0}; i < hash.m_size; i++)
+        {
+            auto inicio = hash.m_data_table[i].begin();
+            auto fim = hash.m_data_table[i].end();
+
+            os << "[" << i << "]";
+
+            for (auto it{inicio}; it != fim; it++)
+                os << "  " << it->m_data;
+
+            os << std::endl;
+        }
+
+        return os;
+    }
+
     /** Retorna uma referência para o dado associado a chave \key fornecida, se existir.
      * Se a chave não estiver na tabela, o método lança uma exceção do tipo std::out_of_range.
      * 
@@ -234,16 +258,15 @@ class HashTbl
      */
     DataType &at(const KeyType &key)
     {
-        Entry new_entry(key, data); //!< Cria uma Entry baseada nos arguementos passados como parametros
         DataType dt;
+        Entry new_entry(key, dt); //!< Cria uma Entry baseada nos arguementos passados como parametros
 
         auto end(hashFunctior(key) % m_size);
+        auto inicio = m_data_table[end].begin();
+        auto fim = m_data_table[end].end();
 
         for (auto it(inicio); it != fim; it++)
         {
-            auto inicio = m_data_table[end].begin();
-            auto fim = m_data_table[end].end();
-
             // Compara as chaves para o caso de colisão
             if (equalFunctor(it->key, new_entry.key))
                 dt = it->m_data;
@@ -298,26 +321,6 @@ class HashTbl
         }
 
         return cont;
-    }
-
-    /** É método de depuração para gerar uma representação textual da tabela e seus elementos.
-     */
-    friend std::ostream &operator<<(std::ostream &os, const HashTbl &hash)
-    {
-        auto inicio = hash.m_data_table[i].begin();
-        auto fim = hash.m_data_table[i].end();
-
-        for (auto i{0}; i < hash.m_size; i++)
-        {
-            os << "[" << i << "]";
-
-            for (auto it{inicio}; it != fim; it++)
-                os << "  " << it->m_data;
-
-            os << std::endl;
-        }
-
-        return os;
     }
 
   private:
