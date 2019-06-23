@@ -16,6 +16,5 @@ Agora compile o projeto com: ```$ make ```
 ## Executando
 Para executar o projeto: ```$ ./hash ```.
 
---
 
 Autor: Ranna Raabe
