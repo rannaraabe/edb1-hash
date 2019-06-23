@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project (MyHashTbl VERSION 1.0.0 LANGUAGES CXX )
+project (HashTable VERSION 1.0.0 LANGUAGES CXX )
 
 #=== FINDING PACKAGES ===#
 
