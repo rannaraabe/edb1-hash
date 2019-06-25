@@ -24,8 +24,8 @@ include_directories( include )
 
 # Add test files.
 file(GLOB SOURCES_TEST "test/*.cpp")
-#add_executable(run_tests ${SOURCES_TEST})
-add_executable(run_tests "test/main.cpp" )
+#add_executable(hash ${SOURCES_TEST})
+add_executable(hash "test/main.cpp" )
 
 # Link with the google test libraries.
-target_link_libraries(run_tests PRIVATE ${GTEST_LIBRARIES} PRIVATE pthread )
+target_link_libraries(hash PRIVATE ${GTEST_LIBRARIES} PRIVATE pthread )

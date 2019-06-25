@@ -40,9 +40,8 @@ class HashTbl
     /** Construtor default
      */
     HashTbl(size_t tbl_size = DEFAULT_SIZE)
+        : m_size(tbl_size), m_count(0)
     {
-        m_size = tbl_size;
-        m_count = 0;
         m_data_table = new std::forward_list<Entry>[m_size];
     }
 
@@ -53,56 +52,6 @@ class HashTbl
         delete[] m_data_table;
     }
 
-    /** Construtor de cópia
-     */
-    HashTbl(const HashTbl &other)
-    {
-        m_data_table = new std::forward_list<Entry>[other.m_size];
-        m_size = other.m_size;
-
-        auto inicio = other.m_data_table.begin(); //!< Inicio da lista
-        auto fim = other.m_data_table.end();      //!< Final da lista
-
-        for (auto i{0}; i < m_size; i++)
-        {
-            if (other.m_data_table[i].empty() == false)
-            {
-                for (auto it(inicio); it != fim; it++)
-                {
-                    Entry new_entry(it->m_key, it->m_data);
-                    m_data_table[i].push_front(new_entry);
-                }
-            }
-        }
-
-        m_count = other.m_count;
-    }
-
-    /** Construtor de lista inicializadora
-     */
-    HashTbl(std::initializer_list<Entry> ilist);
-
-    /** Operador de atribuição 
-     */
-    HashTbl &operator=(const HashTbl &other)
-    {
-        // Limpo a lista, caso tenha elementos
-        clear();
-        m_size = other.m_size;
-
-        auto inicio = other.m_data_table.begin(); //!< Inicio da lista
-        auto fim = other.m_data_table.end();      //!< Final da lista
-
-        for (auto i{inicio}; i < fim; i++)
-            m_data_table[i] = other.m_data_table[i];
-
-        return *this;
-    }
-
-    /** Operador de atribuição 
-     */
-    HashTbl &operator=(std::initializer_list<Entry> ilist);
-
     /** Insere na tabela a informação contida em \data e associada a uma chave \key.
      *
      * @key chave a ser associada ao valor
@@ -112,19 +61,20 @@ class HashTbl
     {
         Entry new_entry(key, data); //!< Cria uma Entry baseada nos arguementos passados como parametros
 
-        auto end(hashFunctior(key) % m_size); //!< Aplica o double hashing
+        auto end(hashFunctor(key) % m_size); //!< Aplica o double hashing
 
-        auto inicio = m_data_table[end].begin(); //!< Inicio da lista
-        auto fim = m_data_table[end].end();      //!< Final da lista
+        auto pos = &this->m_data_table[end];
+        auto inicio = pos->begin(); //!< Inicio da lista
+        auto fim = pos->end();      //!< Final da lista
 
         /* Nao precisa conferir se a lista está vazia, pois se estiver basta adicionar o elemento normalmente!!! */
 
-        for (auto it(inicio); it != fim; it++)
+        for (auto it{inicio}; it != fim; ++it)
         {
             // Compara as chaves para o caso de colisão
-            if (equalFunctor(it->key, new_entry.key))
+            if (equalFunctor(it->m_key, new_entry.m_key))
             {
-                it->data = new_entry.m_data;
+                it->m_data = new_entry.m_data;
                 // Somo um na quantidade de itens na lista
                 m_count++;
 
@@ -132,7 +82,7 @@ class HashTbl
             }
 
             // Adidicona o valor na lista
-            m_data_table[end].push_front(new_entry);
+            pos->push_front(new_entry);
             // Somo um na quantidade de itens na lista
             m_count++;
 
@@ -147,18 +97,20 @@ class HashTbl
      */
     bool erase(const KeyType &key)
     {
-        auto end(hashFunctior(key) % m_size); //!< Aplica o double hashing
+        auto end(hashFunctor(key) % m_size); //!< Aplica o double hashing
 
-        auto inicio = m_data_table[end].begin(); //!< Inicio da lista
-        auto fim = m_data_table[end].end();      //!< Final da lista
+        auto pos = &this->m_data_table[end];
+        auto inicio = pos->begin(); //!< Inicio da lista
+        auto fim = pos->end();      //!< Final da lista
 
-        for (auto it(inicio); it != fim; it++)
+        for (auto it{inicio}; it != fim; ++it)
         {
             // Compara as chaves para o caso de colisão
-            if (equalFunctor(it->key, key))
+            if (equalFunctor(it->m_key, key))
             {
                 // Remove o valor na lista
-                m_data_table[end].remove(m_data_table[end].m_key == key);
+                // pos->remove(pos->m_key == key);
+
                 // Diminui um no valor da quantidade de elementos
                 m_count--;
                 return true;
@@ -176,20 +128,22 @@ class HashTbl
      */
     bool retrieve(const KeyType &key, DataType &data) const
     {
-        KeyHash hashFunctior;
-        KeyEqual equalFunctior;
+        KeyHash hashFunctor;
+        KeyEqual equalFunctor;
 
-        auto end(hashFunctior(key) % m_size);
-        auto inicio = m_data_table[end].begin();
-        auto fim = m_data_table[end].end();
+        auto end(hashFunctor(key) % m_size);
 
-        if (m_data_table->empty())
+        auto pos = &this->m_data_table[end];
+        auto inicio = pos->begin(); //!< Inicio da lista
+        auto fim = pos->end();      //!< Final da lista
+
+        if (pos->empty())
             return false;
         else
         {
-            for (auto it(inicio); it != fim; it++)
+            for (auto it{inicio}; it != fim; ++it)
             {
-                if (equalFunctior(it->m_key, key))
+                if (equalFunctor(it->m_key, key))
                     data = it->m_data;
             }
 
@@ -204,7 +158,7 @@ class HashTbl
     void clear(void)
     {
         // Confere se a lista está vazia
-        if (this->m_data_table.empty())
+        if (this->m_data_table->empty())
             return;
         else
         {
@@ -259,18 +213,23 @@ class HashTbl
     DataType &at(const KeyType &key)
     {
         DataType dt;
-        Entry new_entry(key, dt); //!< Cria uma Entry baseada nos arguementos passados como parametros
 
-        auto end(hashFunctior(key) % m_size);
-        auto inicio = m_data_table[end].begin();
-        auto fim = m_data_table[end].end();
+        auto end(hashFunctor(key) % m_size);
 
-        for (auto it(inicio); it != fim; it++)
+        auto pos = &this->m_data_table[end];
+        auto inicio = pos->begin(); //!< Inicio da lista
+        auto fim = pos->end();      //!< Final da lista
+
+        if (end > size())
+            std::cout << "Valor fora do intervalo.";
+        else
         {
-            // Compara as chaves para o caso de colisão
-            if (equalFunctor(it->key, new_entry.key))
-                dt = it->m_data;
-
+            for (auto it{inicio}; it != fim; ++it)
+            {
+                // Compara as chaves para o caso de colisão
+                if (equalFunctor(it->m_key, key))
+                    dt = it->m_data;
+            }
             return dt;
         }
     }
@@ -292,7 +251,7 @@ class HashTbl
         if (this->retrieve(key, *dt) == false)
             insert(key, *dt);
 
-        return dt;
+        return *dt;
     }
 
     /** Retorna a quantidade de elementos da tabela que estão na lista de colisão 
@@ -302,9 +261,10 @@ class HashTbl
      */
     size_t count(const KeyType &key) const
     {
-        KeyHash hashFunc;
+        KeyHash hashFunctor;
+
         size_t cont = 0;
-        auto end(hashFunc(key) % m_size);
+        auto end(hashFunctor(key) % m_size);
 
         // Se a lista estiver vazia retorna 0
         if (m_data_table->empty())
@@ -334,10 +294,7 @@ class HashTbl
     /** Método chamado quando o fator de carga λ for maior que 1.0. Cria uma nova tabela
      * cujo tamanho será igual ao menor número primo >= que o dobro do tamanho da tabela antes da chamada.
      */
-    void rehash()
-    {
-        KeyHash hashFunctor;
-    }
+    void rehash();
 };
 }; // namespace ac
 
