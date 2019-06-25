@@ -307,21 +307,26 @@ class HashTbl
         size_t cont = 0;
         auto end(hashFunctor(key) % m_size);
 
-        // Se a lista estiver vazia retorna 0
-        if (m_data_table->empty())
-            return cont;
-        else
-        {
-            // Inicio e final da lista
-            auto inicio = m_data_table[end].begin();
-            auto fim = m_data_table[end].end();
+        // Inicio e final da lista
+        auto inicio = m_data_table[end].begin();
+        auto fim = m_data_table[end].end();
 
-            // Percorre a lista, contando os elementos
-            for (auto it(inicio); it != fim; it++)
-                cont++;
-        }
+        // Percorre a lista, contando os elementos
+        for (auto it(inicio); it != fim; it++)
+            cont++;
 
         return cont;
+    }
+
+    bool ehPrimo(int num)
+    {
+
+        for (int i = 2; i < num; i++)
+        {
+            if (num % i == 0)
+                return false;
+        }
+        return true;
     }
 
   private:
