@@ -147,8 +147,7 @@ TEST_F(HTTest, OperatorSquareBraketsLHS2)
 
 //     // Retrieve each element
 //     for (auto &e : m_accounts)
-//         ASSERT_EQ(ht_accounts.at(e.getKey()), e);
-    
+//         ASSERT_EQ(ht_accounts.at(e.getKey()), e);    
 
 // }
 
