@@ -16,30 +16,6 @@ class HTTest : public ::testing::Test
 {
 
   public:
-    /** Functor KeyHash. Classe que sobrecarrega o operador funcional operator().
-     */
-    struct KeyHash
-    {
-        /** Função de disperção primária. Recebe como argumento uma chave e retorn um inteiro sem sinal. 
-     */
-        std::size_t operator()(const Account::AcctKey &key) const
-        {
-            return std::hash<int>()(key);
-        }
-    };
-
-    /** Functor KeyEqual. Classe que sobrecarrega o operador funcional operator().
-     */
-    struct KeyEqual
-    {
-        /** Função de comparação de chaves. Recebe duas chaves e retorna um booleano indicando se são iguais.
-     */
-        bool operator()(const Account::AcctKey &lhs, const Account::AcctKey &rhs) const
-        {
-            return lhs == rhs;
-        }
-    };
-
     // Infrastructure to help the tests.
     std::array<Account, 8> m_accounts; //!< our fixed account data base
     Account target;                    //!< Target account to search for.
@@ -172,12 +148,13 @@ TEST_F(HTTest, AtRHS)
     // Retrieve each element
     for (auto &e : m_accounts)
         ASSERT_EQ(ht_accounts.at(e.getKey()), e);
+    
+
 }
 
 TEST_F(HTTest, AtLHS)
 {
     insert_accounts();
-
     auto curr_size = ht_accounts.size();
     // Change the data in the table.
     auto i{10};

@@ -35,17 +35,17 @@ class Account
 
     /** Operador de atribuição 
      */
-    // Account &operator=(const Account &a)
-    // {
-    //     this->nome_cliente = a.nome_cliente;
-    //     this->chave = a.chave;
-    //     this->cod_banco = a.cod_banco;
-    //     this->ag = a.ag;
-    //     this->conta = a.conta;
-    //     this->m_balance = a.m_balance;
+    Account &operator=(const Account &a)
+    {
+        this->nome_cliente = a.nome_cliente;
+        this->chave = a.chave;
+        this->cod_banco = a.cod_banco;
+        this->ag = a.ag;
+        this->conta = a.conta;
+        this->m_balance = a.m_balance;
 
-    //     return *this;
-    // }
+        return *this;
+    }
 
     /** Operador lógico
      */
@@ -55,5 +55,29 @@ class Account
             return true;
 
         return false;
+    }
+};
+
+/** Functor KeyHash. Classe que sobrecarrega o operador funcional operator().
+ */
+struct KeyHash
+{
+    /** Função de disperção primária. Recebe como argumento uma chave e retorn um inteiro sem sinal. 
+     */
+    std::size_t operator()(const Account::AcctKey &key) const
+    {
+        return std::hash<int>()(key);
+    }
+};
+
+/** Functor KeyEqual. Classe que sobrecarrega o operador funcional operator().
+ */
+struct KeyEqual
+{
+    /** Função de comparação de chaves. Recebe duas chaves e retorna um booleano indicando se são iguais.
+     */
+    bool operator()(const Account::AcctKey &lhs, const Account::AcctKey &rhs) const
+    {
+        return lhs == rhs;
     }
 };

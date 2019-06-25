@@ -8,6 +8,7 @@
 
 #include <iostream>
 #include <forward_list>
+#include <exception>
 
 namespace ac
 {
@@ -42,6 +43,7 @@ class HashTbl
     HashTbl(size_t tbl_size = DEFAULT_SIZE)
         : m_size(tbl_size), m_count(0)
     {
+        m_count = 0;
         m_data_table = new std::forward_list<Entry>[m_size];
     }
 
@@ -52,6 +54,65 @@ class HashTbl
         delete[] m_data_table;
     }
 
+    /** Construtor de cópia
+     */
+    HashTbl(const HashTbl &other)
+    {
+        m_size = other.m_size;
+        m_count = other.m_count;
+        m_data_table = new std::forward_list<Entry>[m_size];
+
+        // Copiando os valores
+        for (int i = 0; i < m_size; i++)
+            m_data_table[i] = other.m_data_table[i];
+    }
+
+    /** Construtor de cópia de lista inicializadora
+     */
+    HashTbl(std::initializer_list<Entry> ilist)
+    {
+        m_size = ilist.size();
+        m_count = 0;
+        m_data_table = new std::forward_list<Entry>[m_size];
+
+        for (auto it = ilist.begin(); it != ilist.end(); ++it)
+            insert(it->m_key, it->m_data);
+    }
+
+    /** Operador de atribuição 
+     */
+    HashTbl &operator=(const HashTbl &other)
+    {
+        clear();
+        delete[] m_data_table;
+
+        m_size = other.m_size;
+        m_count = other.m_count;
+        m_data_table = new std::forward_list<Entry>[m_size];
+
+        // Copiando os valores
+        for (int i = 0; i < m_size; i++)
+            m_data_table[i] = other.m_data_table[i];
+
+        return *this;
+    }
+
+    /** Operador de atribuição de lista inicializadora
+     */
+    HashTbl &operator=(std::initializer_list<Entry> ilist)
+    {
+        delete[] m_data_table;
+
+        m_size = ilist.size();
+        m_count = 0;
+        m_data_table = new std::forward_list<Entry>[m_size];
+
+        for (auto it = ilist.begin(); it != ilist.end(); ++it)
+            insert(it->m_key, it->m_data);
+
+        return *this;
+    }
+
     /** Insere na tabela a informação contida em \data e associada a uma chave \key.
      *
      * @key chave a ser associada ao valor
@@ -59,35 +120,26 @@ class HashTbl
      */
     bool insert(const KeyType &key, const DataType &data)
     {
+        KeyHash hashFunctor;
+        KeyEqual equalFunctor;
+
+        auto end = hashFunctor(key) % m_size;
+
         Entry new_entry(key, data); //!< Cria uma Entry baseada nos arguementos passados como parametros
 
-        auto end(hashFunctor(key) % m_size); //!< Aplica o double hashing
-
-        auto pos = &this->m_data_table[end];
-        auto inicio = pos->begin(); //!< Inicio da lista
-        auto fim = pos->end();      //!< Final da lista
-
-        /* Nao precisa conferir se a lista está vazia, pois se estiver basta adicionar o elemento normalmente!!! */
-
-        for (auto it{inicio}; it != fim; ++it)
+        for (auto it = m_data_table[end].begin(); it != m_data_table[end].end(); it++)
         {
-            // Compara as chaves para o caso de colisão
             if (equalFunctor(it->m_key, new_entry.m_key))
             {
-                it->m_data = new_entry.m_data;
-                // Somo um na quantidade de itens na lista
-                m_count++;
-
+                it->m_data = data;
                 return false;
             }
-
-            // Adidicona o valor na lista
-            pos->push_front(new_entry);
-            // Somo um na quantidade de itens na lista
-            m_count++;
-
-            return true;
         }
+
+        m_count++;
+        m_data_table[end].push_front(new_entry);
+
+        return true;
     }
 
     /** Remove um item de tabela identificado pela chave \key. Se a chave for encontrada
@@ -97,11 +149,16 @@ class HashTbl
      */
     bool erase(const KeyType &key)
     {
+        KeyHash hashFunctor;
+        KeyEqual equalFunctor;
+
         auto end(hashFunctor(key) % m_size); //!< Aplica o double hashing
 
-        auto pos = &this->m_data_table[end];
-        auto inicio = pos->begin(); //!< Inicio da lista
-        auto fim = pos->end();      //!< Final da lista
+        auto pos = this->m_data_table[end];
+        auto inicio = pos.begin(); //!< Inicio da lista
+        auto fim = pos.end();      //!< Final da lista
+
+        auto garfo = pos.before_begin();
 
         for (auto it{inicio}; it != fim; ++it)
         {
@@ -109,15 +166,16 @@ class HashTbl
             if (equalFunctor(it->m_key, key))
             {
                 // Remove o valor na lista
-                // pos->remove(pos->m_key == key);
+                pos.erase_after(garfo);
 
                 // Diminui um no valor da quantidade de elementos
                 m_count--;
                 return true;
             }
-
-            return false;
+            garfo++;
         }
+
+        return false;
     }
 
     /** Recupera em \data a informação associada a chave \key passada. Se a chave for
@@ -131,23 +189,15 @@ class HashTbl
         KeyHash hashFunctor;
         KeyEqual equalFunctor;
 
-        auto end(hashFunctor(key) % m_size);
+        auto end(hashFunctor(key) % m_size); //!< Aplica o double hashing
 
-        auto pos = &this->m_data_table[end];
-        auto inicio = pos->begin(); //!< Inicio da lista
-        auto fim = pos->end();      //!< Final da lista
-
-        if (pos->empty())
-            return false;
-        else
+        for (auto it = m_data_table[end].begin(); it != m_data_table[end].end(); it++)
         {
-            for (auto it{inicio}; it != fim; ++it)
+            if (equalFunctor(it->m_key, key))
             {
-                if (equalFunctor(it->m_key, key))
-                    data = it->m_data;
+                data = it->m_data;
+                return true;
             }
-
-            return true;
         }
 
         return false;
@@ -157,15 +207,11 @@ class HashTbl
      */
     void clear(void)
     {
-        // Confere se a lista está vazia
-        if (this->m_data_table->empty())
-            return;
-        else
-        {
-            // Caso não esteja vazia, percorre cada elemento da lista apagando
-            for (auto i{0}; i < m_size; i++)
-                m_data_table[i].clear();
-        }
+        // Caso não esteja vazia, percorre cada elemento da lista apagando
+        for (auto i{0}; i < m_size; i++)
+            m_data_table[i].clear();
+
+        m_count = 0;
     }
 
     /** Retorna true se a tabela estiver vazia, caso contrário false.
@@ -214,24 +260,10 @@ class HashTbl
     {
         DataType dt;
 
-        auto end(hashFunctor(key) % m_size);
+        if (not(retrieve(key, dt)))
+            throw std::out_of_range("Valor fora do intervalo.");
 
-        auto pos = &this->m_data_table[end];
-        auto inicio = pos->begin(); //!< Inicio da lista
-        auto fim = pos->end();      //!< Final da lista
-
-        if (end > size())
-            std::cout << "Valor fora do intervalo.";
-        else
-        {
-            for (auto it{inicio}; it != fim; ++it)
-            {
-                // Compara as chaves para o caso de colisão
-                if (equalFunctor(it->m_key, key))
-                    dt = it->m_data;
-            }
-            return dt;
-        }
+        return dt;
     }
 
     /** Retorna uma referência para o dado associado a chave \key, se existir. 
@@ -242,16 +274,25 @@ class HashTbl
      */
     DataType &operator[](const KeyType &key)
     {
-        DataType *dt;
-
-        // Chama a funcao retrieve que recupera o valor associado a chave passada
-        this->retrieve(key, *dt);
-
         // Caso a chave não esteja na tabela faz a inserção
-        if (this->retrieve(key, *dt) == false)
-            insert(key, *dt);
+        KeyHash hashFunctor;
+        KeyEqual equalFunctor;
 
-        return *dt;
+        auto end(hashFunctor(key) % m_size);
+
+        for (auto &e : m_data_table[end])
+        {
+            if (equalFunctor(e.m_key, key) == true)
+                return e.m_data;
+        }
+
+        DataType dt = DataType();
+        Entry entry(key, dt);
+
+        m_count++;
+        m_data_table[end].push_front(entry);
+
+        return m_data_table[end].front().m_data;
     }
 
     /** Retorna a quantidade de elementos da tabela que estão na lista de colisão 
