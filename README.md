@@ -16,5 +16,18 @@ Agora compile o projeto com: ```$ make ```
 ## Executando
 Para executar o projeto: ```$ ./hash ```.
 
+## Observação
+Os testes que falharam foram:
+
+```
+  [  FAILED  ] HTTest.InsertingData
+  [  FAILED  ] HTTest.OperatorSquareBraketsRHS
+  [  FAILED  ] HTTest.OperatorSquareBraketsLHS
+  [  FAILED  ] HTTest.EraseExisting
+  [  FAILED  ] HTTest.Count
+```
+
+Além desses o AtRHS e AtLHS deram segmentation fault, para conseguir testar todos os testes eu comentei esses dois testes no arquivo ```test/main.cpp```, portanto teoricamente eles também falharam.
+
 
 Autor: Ranna Raabe
